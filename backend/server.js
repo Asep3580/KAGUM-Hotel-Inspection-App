@@ -203,28 +203,21 @@ const asyncHandler = fn => (req, res, next) => {
 // --- Auth Endpoints ---
 
 // POST: Registrasi pengguna baru (untuk testing)
-app.post('/api/auth/register', asyncHandler(async (req, res, next) => {
-    try {
-        const { email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({ message: 'Email dan password diperlukan.' });
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const password_hash = await bcrypt.hash(password, salt);
-
-        const newUser = await pool.query(
-            "INSERT INTO users (username, email, password_hash, role) VALUES ($1, $1, $2, 'inspector') RETURNING user_id, username, email, role",
-            [email, password_hash] // Default role is 'inspector' for public registration
-        );
-
-        res.status(201).json(newUser.rows[0]);
-    } catch (err) {
-        if (err.code === '23505') {
-            return res.status(409).json({ message: 'Email sudah terdaftar.' });
-        }
-        next(err);
+app.post('/api/auth/register', asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email dan password diperlukan.' });
     }
+
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
+
+    const newUser = await pool.query(
+        "INSERT INTO users (username, email, password_hash, role) VALUES ($1, $1, $2, 'inspector') RETURNING user_id, username, email, role",
+        [email, password_hash] // Default role is 'inspector' for public registration
+    );
+
+    res.status(201).json(newUser.rows[0]);
 }));
 
 // POST: Login pengguna
@@ -248,7 +241,7 @@ app.post('/api/auth/login', asyncHandler(async (req, res) => {
 }));
 
 // POST: Meminta link reset password
-app.post('/api/auth/forgot-password', asyncHandler(async (req, res, next) => {
+app.post('/api/auth/forgot-password', asyncHandler(async (req, res) => {
     const { email } = req.body;
     if (!email) {
         return res.status(400).json({ message: 'Email diperlukan.' });
@@ -320,7 +313,7 @@ app.post('/api/auth/forgot-password', asyncHandler(async (req, res, next) => {
 }));
 
 // POST: Mereset password menggunakan token
-app.post('/api/auth/reset-password', asyncHandler(async (req, res, next) => {
+app.post('/api/auth/reset-password', asyncHandler(async (req, res) => {
     const { token, newPassword } = req.body;
 
     if (!token || !newPassword) {
