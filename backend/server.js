@@ -16,6 +16,14 @@ const app = express();
 const PORT = process.env.PORT || 3001; // Mengganti port default untuk menghindari konflik umum
 const isProduction = process.env.NODE_ENV === 'production';
 
+// --- Security: Ensure essential environment variables are set ---
+if (isProduction && !process.env.JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET is not defined in the production environment.');
+    process.exit(1); // Exit the process with an error code
+}
+// Use a constant for the secret and provide a default for development only.
+const JWT_SECRET = process.env.JWT_SECRET || 'your_default_secret_for_development_only';
+
 // Konfigurasi koneksi database
 // Di produksi (Render), gunakan DATABASE_URL. Di development, gunakan variabel .env
 const connectionConfig = isProduction 
@@ -51,7 +59,7 @@ const transporter = nodemailer.createTransport({
             rejectUnauthorized: false
         }
     }
-});
+)});
 
 // --- Konfigurasi Multer untuk Upload File ---
 
@@ -135,7 +143,7 @@ const verifyToken = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_default_secret');
+        const decoded = jwt.verify(token, JWT_SECRET);
         req.user = decoded;
         next();
     } catch (err) {
@@ -220,28 +228,23 @@ app.post('/api/auth/register', asyncHandler(async (req, res, next) => {
 }));
 
 // POST: Login pengguna
-app.post('/api/auth/login', asyncHandler(async (req, res, next) => {
-    try {
-        const { email, password } = req.body;
-        const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (userResult.rows.length === 0) {
-            return res.status(401).json({ message: 'Email atau password salah.' });
-        }
-        const user = userResult.rows[0];
-
-        const isMatch = await bcrypt.compare(password, user.password_hash);
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Email atau password salah.' });
-        }
-
-        const payload = { user: { id: user.user_id, username: user.username, email: user.email, role: user.role } };
-        const token = jwt.sign(payload, process.env.JWT_SECRET || 'your_default_secret', { expiresIn: '1h' });
-
-        res.json({ token });
-
-    } catch (err) {
-        next(err);
+app.post('/api/auth/login', asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+    const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userResult.rows.length === 0) {
+        return res.status(401).json({ message: 'Email atau password salah.' });
     }
+    const user = userResult.rows[0];
+
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+        return res.status(401).json({ message: 'Email atau password salah.' });
+    }
+
+    const payload = { user: { id: user.user_id, username: user.username, email: user.email, role: user.role } };
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({ token });
 }));
 
 // POST: Meminta link reset password
