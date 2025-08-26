@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Inspection App</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for KPI Chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="antialiased text-slate-800">
+
+    <div class="flex h-screen bg-slate-100">
+        <!-- Sidebar -->
+        <div id="sidebar-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+        <aside id="sidebar" class="w-64 flex-shrink-0 bg-white shadow-lg flex flex-col fixed inset-y-0 left-0 z-30 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div class="h-16 flex items-center justify-between px-4 border-b">
+                 <div class="flex items-center space-x-3">
+                    <div class="bg-blue-500 p-2 rounded-lg shadow-md">
+                        <i data-feather="check-square" class="text-white"></i>
+                    </div>
+                    <h1 class="text-xl font-bold text-slate-900">Hotel Inspection</h1>
+                </div>
+                <button id="sidebar-close-button" class="p-2 rounded-full hover:bg-slate-100 md:hidden">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a href="#" data-page="dashboard-page" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200">
+                    <i data-feather="grid" class="mr-3 w-5 h-5 text-slate-500"></i><span>Dashboard</span>
+                </a>
+                <a href="#" data-page="inspection-page" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200">
+                    <i data-feather="edit" class="mr-3 w-5 h-5 text-slate-500"></i><span>Inspection</span>
+                </a>
+                <a href="#" data-page="working-order-page" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200">
+                    <i data-feather="tool" class="mr-3 w-5 h-5 text-slate-500"></i><span>Working Order</span>
+                </a>
+                <a href="#" data-page="reports-page" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200">
+                    <i data-feather="file-text" class="mr-3 w-5 h-5 text-slate-500"></i><span>Reports</span>
+                </a>
+                <a href="#" id="settings-menu-link" data-page="settings-page" class="sidebar-link flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200" style="display: none;">
+                    <i data-feather="settings" class="mr-3 w-5 h-5 text-slate-500"></i><span>Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="bg-white shadow-sm h-16 flex items-center justify-between px-4 sm:px-8 border-b">
+                <div class="flex items-center">
+                    <button id="mobile-menu-button" class="p-2 rounded-full hover:bg-slate-100 md:hidden mr-3">
+                        <i data-feather="menu"></i>
+                    </button>
+                    <h2 id="page-title" class="text-xl font-semibold text-slate-800">Dashboard</h2>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="hotel-context-container">
+                        <label for="hotel-selector" class="sr-only">Pilih Hotel</label>
+                        <select id="hotel-selector" class="bg-white border border-slate-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option>Memuat hotel...</option>
+                        </select>
+                        <div id="hotel-display-name" class="hidden items-center px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-200 rounded-md">
+                            <!-- Nama hotel akan ditampilkan di sini -->
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="#" id="profile-link" data-page="profile-page" class="sidebar-link flex items-center space-x-2 p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                            <span id="user-greeting" class="text-sm font-medium text-slate-700 hidden sm:block">Memuat...</span>
+                            <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500"><i data-feather="user" class="w-5 h-5"></i></div>
+                        </a>
+                        <button id="logout-btn" title="Logout" class="p-2 rounded-full hover:bg-slate-100 text-red-500 hover:text-red-600"><i data-feather="log-out"></i></button>
+                    </div>
+                </div>
+            </header>
+            
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-100 p-4 md:p-6 lg:p-8">
+                <!-- Page Containers -->
+                <div id="dashboard-page" class="page-content space-y-6">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+                        <!-- Total Rooms -->
+                        <div class="bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i data-feather="home" class="w-6 h-6 text-blue-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Total Rooms</p>
+                                <p id="stats-total-rooms" class="text-2xl font-bold">0</p>
+                            </div>
+                        </div>
+                        <!-- Good Condition -->
+                        <div class="stat-card-clickable bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all" data-status="Baik">
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <i data-feather="check-circle" class="w-6 h-6 text-green-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Good Condition</p>
+                                <p id="stats-good-condition" class="text-2xl font-bold">0</p>
+                            </div>
+                        </div>
+                        <!-- In Progress -->
+                        <div class="stat-card-clickable bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all" data-status="In Progress">
+                            <div class="bg-yellow-100 p-3 rounded-full">
+                                <i data-feather="loader" class="w-6 h-6 text-yellow-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">In Progress</p>
+                                <p id="stats-in-progress" class="text-2xl font-bold">0</p>
+                            </div>
+                        </div>
+                        <!-- Needs Improvement -->
+                        <div class="stat-card-clickable bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all" data-status="Kurang">
+                            <div class="bg-red-100 p-3 rounded-full">
+                                <i data-feather="alert-triangle" class="w-6 h-6 text-red-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Needs Improvement</p>
+                                <p id="stats-needs-improvement" class="text-2xl font-bold">0</p>
+                            </div>
+                        </div>
+                        <!-- Not Inspected -->
+                        <div class="bg-white p-6 rounded-lg shadow-sm flex items-center space-x-4">
+                            <div class="bg-slate-200 p-3 rounded-full">
+                                <i data-feather="help-circle" class="w-6 h-6 text-slate-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Not Inspected</p>
+                                <p id="stats-not-inspected" class="text-2xl font-bold">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Collapsible Section for Rooms -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <div id="visual-status-toggle" class="flex justify-between items-center cursor-pointer">
+                            <h3 class="text-lg font-semibold">Room Visual Status</h3>
+                            <i id="toggle-icon" data-feather="chevron-up" class="transition-transform duration-300"></i>
+                        </div>
+                        <div id="room-status-container" class="overflow-hidden transition-all duration-500 ease-in-out">
+                             <div id="room-status-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-2 sm:gap-4 pt-4">
+                                <!-- Room status items will be dynamically generated here -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Collapsible Section for Areas -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <div id="visual-area-toggle" class="flex justify-between items-center cursor-pointer">
+                            <h3 class="text-lg font-semibold">Area Visual Status</h3>
+                            <i id="toggle-area-icon" data-feather="chevron-up" class="transition-transform duration-300"></i>
+                        </div>
+                        <div id="area-status-container" class="overflow-hidden transition-all duration-500 ease-in-out">
+                             <div id="area-status-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pt-4">
+                                <!-- Area status items will be dynamically generated here -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- KPI Chart and Recent History -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-sm">
+                            <h2 class="text-lg font-semibold mb-4 border-b pb-3 flex items-center">
+                                <i data-feather="pie-chart" class="mr-2"></i>Maintenance KPI Progress
+                            </h2>
+                            <div class="h-64 flex items-center justify-center">
+                                <canvas id="kpi-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
+                            <h2 class="text-lg font-semibold mb-4 border-b pb-3 flex items-center">
+                                <i data-feather="list" class="mr-2"></i>Recent Inspection History
+                            </h2>
+                            <div id="inspection-list" class="space-y-3 max-h-[40vh] overflow-y-auto pr-2">
+                                <div id="empty-state" class="text-center py-10"><p class="text-slate-500">No data available yet.</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="inspection-page" class="page-content hidden">
+                    <!-- Pesan yang ditampilkan saat "Semua Hotel" dipilih -->
+                    <div id="inspection-prompt-message" class="hidden text-center p-8 bg-white rounded-lg shadow-sm">
+                        <p class="text-slate-500">Please select a specific hotel to start an inspection.</p>
+                    </div>
+
+                    <!-- Card Selection View -->
+                    <div id="inspection-selection">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Room Inspection Card -->
+                            <a href="#" id="select-room-inspection-card" class="group block bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
+                                <div class="flex items-center space-x-5">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-blue-100 p-4 rounded-lg">
+                                            <i data-feather="key" class="w-8 h-8 text-blue-500"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-slate-800">Room Inspection</h3>
+                                        <p class="text-slate-500 mt-1">Start a new inspection for a hotel room.</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <!-- Area Inspection Card -->
+                            <a href="#" id="select-area-inspection-card" class="group block bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
+                                <div class="flex items-center space-x-5">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-green-100 p-4 rounded-lg">
+                                            <i data-feather="map" class="w-8 h-8 text-green-500"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-slate-800">Inspeksi Area</h3>
+                                        <p class="text-slate-500 mt-1">Start an inspection for a public area.</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Form View (initially hidden) -->
+                    <div id="inspection-form-view" class="hidden">
+                        <button id="back-to-selection-btn" class="inline-flex items-center mb-6 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <i data-feather="arrow-left" class="mr-2 -ml-1 h-5 w-5"></i>
+                            Back to Selection
+                        </button>
+
+                        <div id="form-container">
+                            <div id="room-inspection" class="tab-content bg-white p-6 rounded-lg shadow-sm">
+                                <form id="room-inspection-form">
+                                    <h2 class="text-lg font-semibold mb-4 border-b pb-3">Room Inspection Formr</h2>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label for="room-number-select" class="block text-sm font-medium text-slate-600 mb-1">oom Number</label>
+                                            <select id="room-number-select" required class="w-full px-3 py-2 border border-slate-300 rounded-md bg-white">
+                                                <option value="">Select Room Number</option>
+                                                <!-- Options populated by JS -->
+                                            </select>
+                                        </div>
+                                        <div><label for="inspector-name-room" class="block text-sm font-medium text-slate-600 mb-1">Inspector Name</label><input type="text" id="inspector-name-room" required class="w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                                    </div>
+                                    <div id="room-checklist-dynamic" class="mt-6 space-y-4"></div>
+                                    <div class="mt-6"><label for="notes-room" class="block text-sm font-medium text-slate-600 mb-1">Catatan</label><textarea id="notes-room" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-md"></textarea></div>
+                                    <div class="mt-6">
+                                        <label for="photos-room" class="block text-sm font-medium text-slate-700">Upload Foto (Maks. 5, Opsional)</label>
+                                        <input type="file" id="photos-room" name="photos" multiple accept="image/*" capture="environment" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                                        <!-- Container untuk preview gambar yang diupload -->
+                                        <div id="photos-preview-room" class="mt-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2"></div>
+                                    </div>
+                                    <div class="mt-6 text-right"><button type="submit" class="bg-blue-500 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-600">Simpan</button></div>
+                                </form>
+                            </div>
+                            <div id="area-inspection" class="tab-content hidden bg-white p-6 rounded-lg shadow-sm">
+                                    <form id="area-inspection-form">
+                                    <h2 class="text-lg font-semibold mb-4 border-b pb-3">Area Inspection Form</h2>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label for="area-name" class="block text-sm font-medium text-slate-600 mb-1">Area Name</label>
+                                            <select id="area-name" required class="w-full px-3 py-2 border border-slate-300 rounded-md bg-white">
+                                                <option value="">Pilih Area</option>
+                                            </select>
+                                        </div>
+                                        <div><label for="inspector-name-area" class="block text-sm font-medium text-slate-600 mb-1">Name of Inspector</label><input type="text" id="inspector-name-area" required class="w-full px-3 py-2 border border-slate-300 rounded-md"></div>
+                                    </div>
+                                    <div id="area-checklist-dynamic" class="mt-6 space-y-4"></div>
+                                    <div class="mt-6"><label for="notes-area" class="block text-sm font-medium text-slate-600 mb-1">Notes</label><textarea id="notes-area" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-md"></textarea></div>
+                                        <div class="mt-6">
+                                            <label for="photos-area" class="block text-sm font-medium text-slate-700">Upload Foto (Maks. 5, Opsional)</label>
+                                            <input type="file" id="photos-area" name="photos" multiple accept="image/*" capture="environment" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                                            <!-- Container untuk preview gambar yang diupload -->
+                                            <div id="photos-preview-area" class="mt-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2"></div>
+                                        </div>
+                                        <div class="mt-6 text-right"><button type="submit" class="bg-blue-500 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-600">Save</button></div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reports-page" class="page-content hidden">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h2 class="text-2xl font-bold mb-4">Inspection Report</h2>
+                
+                        <!-- Filter Section -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 p-4 border rounded-lg bg-slate-50">
+                            <div>
+                                <label for="report-start-date" class="block text-sm font-medium text-slate-600 mb-1">Start Date</label>
+                                <input type="date" id="report-start-date" class="px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="report-end-date" class="block text-sm font-medium text-slate-600 mb-1">Completion Date</label>
+                                <input type="date" id="report-end-date" class="px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full">
+                            </div>
+                            <div>
+                                <label for="report-status-filter" class="block text-sm font-medium text-slate-600 mb-1">Status</label>
+                                <select id="report-status-filter" class="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">All Status</option>
+                                    <option value="Baik">Sataus Good</option>
+                                    <option value="Kurang">Status Deficient</option>
+                                    <option value="In Progress">In Progress</option>
+                                </select>
+                            </div>
+                            <div class="flex items-end space-x-2 col-span-full sm:col-span-2 lg:col-span-2">
+                                <button id="clear-report-filter-btn" class="bg-slate-200 text-slate-700 font-semibold px-5 py-2 rounded-lg hover:bg-slate-300 flex items-center shadow-sm w-full sm:w-auto justify-center">
+                                    <i data-feather="x" class="w-4 h-4 mr-2"></i> Clear Filter
+                                </button>
+                                <button id="filter-report-btn" class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-600 flex items-center shadow-sm w-full sm:w-auto justify-center">
+                                    <i data-feather="filter" class="w-4 h-4 mr-2"></i> Filter
+                                </button>
+                                <div class="border-l border-slate-300 h-8 my-auto"></div>
+                                <button id="export-pdf-btn" class="bg-red-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-red-700 flex items-center shadow-sm w-full sm:w-auto justify-center">
+                                    <i data-feather="file-text" class="w-4 h-4 mr-2"></i> Export PDF
+                                </button>
+                            </div>
+                        </div>
+                
+                        <!-- Reports Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-slate-50 border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-4 text-left text-sm font-semibold text-slate-600">Date</th>
+                                        <th id="report-hotel-header" class="p-4 text-left text-sm font-semibold text-slate-600" style="display: none;">Hotel</th>
+                                        <th class="p-4 text-left text-sm font-semibold text-slate-600">Tipe</th>
+                                        <th class="p-4 text-left text-sm font-semibold text-slate-600">Target</th>
+                                        <th class="p-4 text-left text-sm font-semibold text-slate-600">Inspector</th>
+                                        <th class="p-4 text-left text-sm font-semibold text-slate-600">Status</th>
+                                        <th class="p-4 text-left text-sm font-semibold text-slate-600">Notes</th>
+                                        <th class="p-4 text-center text-sm font-semibold text-slate-600">Photo</th>
+                                        <th class="p-4 text-center text-sm font-semibold text-slate-600">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reports-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settings-page" class="page-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Manage Room Numbers Card -->
+                        <a href="#" id="manage-rooms-card" class="group block bg-white p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
+                            <div class="flex items-center space-x-5">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-purple-100 p-4 rounded-lg">
+                                        <i data-feather="hash" class="w-8 h-8 text-purple-500"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-800">Manage Rooms</h3>
+                                    <p class="text-slate-500 mt-1">Add, edit, or delete room data.</p>
+                                </div>
+                            </div>
+                        </a>
+                        <!-- Manage Areas Card -->
+                        <a href="#" id="manage-areas-card" class="group block bg-white p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
+                            <div class="flex items-center space-x-5">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-green-100 p-4 rounded-lg">
+                                        <i data-feather="map-pin" class="w-8 h-8 text-green-500"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-800">Manage Area</h3>
+                                    <p class="text-slate-500 mt-1">Add or remove inspection areas.</p>
+                                </div>
+                            </div>
+                        </a>
+                        <!-- Manage Room Checklist Card -->
+                        <a href="#" id="manage-room-checklist-card" class="group block bg-white p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
+                            <div class="flex items-center space-x-5">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-orange-100 p-4 rounded-lg">
+                                        <i data-feather="list" class="w-8 h-8 text-orange-500"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-800">Room Checklist</h3>
+                                    <p class="text-slate-500 mt-1">Manage items for room cleaning checklist.</p>
+                                </div>
+                            </div>
+                        </a>
+                        <!-- Manage Area Checklist Card -->
+                        <a href="#" id="manage-area-checklist-card" class="group block bg-white p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
+                            <div class="flex items-center space-x-5">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-teal-100 p-4 rounded-lg">
+                                        <i data-feather="check-circle" class="w-8 h-8 text-teal-500"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-800">Area Checklist</h3>
+                                    <p class="text-slate-500 mt-1">Manage items for area condition checklist.</p>
+                                </div>
+                            </div>
+                        </a>
+                        <!-- Manage Hotels Card -->
+                        <a href="#" id="manage-hotels-card" class="group block bg-white p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1">
+                            <div class="flex items-center space-x-5">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-indigo-100 p-4 rounded-lg">
+                                        <i data-feather="briefcase" class="w-8 h-8 text-indigo-500"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-800">Manage Hotel</h3>
+                                    <p class="text-slate-500 mt-1">Add or edit hotel data in corporation.</p>
+                                </div>
+                            </div>
+                        </a>
+                        <!-- Manage Users Card (Admin Only) -->
+                        <a href="#" id="manage-users-card" class="group block bg-white p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1" style="display: none;">
+                            <div class="flex items-center space-x-5">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-cyan-100 p-4 rounded-lg">
+                                        <i data-feather="users" class="w-8 h-8 text-cyan-500"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-800">Manage User</h3>
+                                    <p class="text-slate-500 mt-1">Add or edit system user data.</p>
+                                </div>
+                            </div>
+                        </a>
+                        <!-- Manage Roles Card (Admin Only) -->
+                        <a href="#" id="manage-roles-card" class="group block bg-white p-6 sm:p-8 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1" style="display: none;">
+                            <div class="flex items-center space-x-5">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-red-100 p-4 rounded-lg">
+                                        <i data-feather="shield" class="w-8 h-8 text-red-500"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-slate-800">Manage Role</h3>
+                                    <p class="text-slate-500 mt-1">Set access rights for each role.</p>
+                                </div>
+                            </div>
+                        </a>
+                        <!-- KARTU BARU UNTUK RESET -->
+                        <div id="reset-sequences-card" class="block p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-slate-200 cursor-pointer">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-red-100">
+                                    <i data-feather="refresh-cw" class="w-6 h-6 text-red-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-semibold">Reset Transaction Number</h3>
+                                    <p class="mt-1 text-sm text-slate-500">Reset Inspection No. & WO to 1.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Kartu pengaturan lainnya bisa ditambahkan di sini -->
+                    </div>
+                </div>
+
+                <div id="manage-rooms-page" class="page-content hidden">
+                    <button class="back-to-settings-btn inline-flex items-center mb-6 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-slate-700 bg-slate-200 hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                        <i data-feather="arrow-left" class="mr-2 -ml-1 h-5 w-5"></i>
+                        Kembali ke Pengaturan
+                    </button>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Kelola Kamar</h2>
+                            <p class="text-slate-500">Daftar semua kamar yang terdaftar di sistem.</p>
+                        </div>
+                        <div>
+                            <button id="add-room-btn" class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-600 flex items-center shadow-sm">
+                                <i data-feather="plus" class="w-5 h-5 mr-2"></i> Tambah Kamar
+                            </button>
+                        </div>
+                    </div>
+                
+                    <!-- Room List Table -->
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-1/3">Nomor Kamar</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-1/3">Tipe Kamar</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-1/3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rooms-table-body">
+                                <!-- Room rows will be generated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="manage-areas-page" class="page-content hidden">
+                    <button class="back-to-settings-btn inline-flex items-center mb-6 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-slate-700 bg-slate-200 hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                        <i data-feather="arrow-left" class="mr-2 -ml-1 h-5 w-5"></i>
+                        Kembali ke Pengaturan
+                    </button>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Kelola Area</h2>
+                            <p class="text-slate-500">Daftar semua area umum yang terdaftar di sistem.</p>
+                        </div>
+                        <div>
+                            <button id="add-area-btn" class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-600 flex items-center shadow-sm">
+                                <i data-feather="plus" class="w-5 h-5 mr-2"></i> Tambah Area
+                            </button>
+                        </div>
+                    </div>
+                
+                    <!-- Area List Table -->
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-2/3">Nama Area</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-1/3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="areas-table-body">
+                                <!-- Area rows will be generated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="manage-room-checklist-page" class="page-content hidden">
+                    <button class="back-to-settings-btn inline-flex items-center mb-6 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-slate-700 bg-slate-200 hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                        <i data-feather="arrow-left" class="mr-2 -ml-1 h-5 w-5"></i>
+                        Kembali ke Pengaturan
+                    </button>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Kelola Checklist Kamar</h2>
+                            <p class="text-slate-500">Daftar item untuk form inspeksi kebersihan kamar.</p>
+                        </div>
+                        <div>
+                            <button id="add-checklist-item-btn" class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-600 flex items-center shadow-sm">
+                                <i data-feather="plus" class="w-5 h-5 mr-2"></i> Tambah Item
+                            </button>
+                        </div>
+                    </div>
+                
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-2/3">Nama Item</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-1/3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="room-checklist-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="manage-area-checklist-page" class="page-content hidden">
+                    <button class="back-to-settings-btn inline-flex items-center mb-6 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-slate-700 bg-slate-200 hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                        <i data-feather="arrow-left" class="mr-2 -ml-1 h-5 w-5"></i>
+                        Kembali ke Pengaturan
+                    </button>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Kelola Checklist Area</h2>
+                            <p class="text-slate-500">Daftar item untuk form inspeksi kondisi area.</p>
+                        </div>
+                        <div>
+                            <button id="add-area-checklist-item-btn" class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-600 flex items-center shadow-sm">
+                                <i data-feather="plus" class="w-5 h-5 mr-2"></i> Tambah Item
+                            </button>
+                        </div>
+                    </div>
+                
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-2/3">Nama Item</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-1/3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="area-checklist-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="manage-hotels-page" class="page-content hidden">
+                    <button class="back-to-settings-btn inline-flex items-center mb-6 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-slate-700 bg-slate-200 hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                        <i data-feather="arrow-left" class="mr-2 -ml-1 h-5 w-5"></i>
+                        Kembali ke Pengaturan
+                    </button>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Kelola Hotel</h2>
+                            <p class="text-slate-500">Daftar semua hotel yang terdaftar di sistem.</p>
+                        </div>
+                        <div>
+                            <button id="add-hotel-btn" class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-600 flex items-center shadow-sm">
+                                <i data-feather="plus" class="w-5 h-5 mr-2"></i> Tambah Hotel
+                            </button>
+                        </div>
+                    </div>
+                
+                    <!-- Hotel List Table -->
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-1/3">Nama Hotel</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-1/3">Alamat</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-1/3">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hotels-table-body">
+                                <!-- Hotel rows will be generated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="manage-users-page" class="page-content hidden">
+                    <button class="back-to-settings-btn inline-flex items-center mb-6 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-slate-700 bg-slate-200 hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                        <i data-feather="arrow-left" class="mr-2 -ml-1 h-5 w-5"></i>
+                        Kembali ke Pengaturan
+                    </button>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Kelola Pengguna</h2>
+                            <p class="text-slate-500 mt-1">Tambah, edit, atau hapus pengguna sistem.</p>
+                        </div>
+                        <div>
+                            <button id="add-user-btn" class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-600 flex items-center shadow-sm">
+                                <i data-feather="plus" class="w-5 h-5 mr-2"></i> Tambah Pengguna
+                            </button>
+                        </div>
+                    </div>
+                
+                    <!-- Users Table -->
+                    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Username</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hotel Ditugaskan</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Peran</th>
+                                    <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- User rows will be generated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="manage-roles-page" class="page-content hidden">
+                    <button class="back-to-settings-btn inline-flex items-center mb-6 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-slate-700 bg-slate-200 hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                        <i data-feather="arrow-left" class="mr-2 -ml-1 h-5 w-5"></i>
+                        Kembali ke Pengaturan
+                    </button>
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Kelola Peran</h2>
+                            <p class="text-slate-500 mt-1">Atur hak akses untuk setiap peran pengguna dalam sistem.</p>
+                        </div>
+                        <button id="save-roles-btn" class="bg-blue-600 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                    <div id="roles-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Role cards will be generated here -->
+                    </div>
+                </div>
+
+                <div id="working-order-page" class="page-content hidden">
+                    <!-- 1. Selection View (default) -->
+                    <div id="wo-selection-view">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Card to create a new WO -->
+                            <a href="#" id="select-wo-form-card" class="block p-8 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow text-center border border-slate-200" data-view="form">
+                                <i data-feather="plus-square" class="w-12 h-12 mx-auto text-blue-500"></i>
+                                <h3 class="mt-4 text-lg font-semibold">Buat Working Order</h3>
+                                <p class="mt-1 text-sm text-slate-500">Buat tugas perbaikan baru secara manual.</p>
+                            </a>
+                            <!-- Card to view the WO list -->
+                            <a href="#" id="select-wo-list-card" class="block p-8 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow text-center border border-slate-200" data-view="list">
+                                <i data-feather="list" class="w-12 h-12 mx-auto text-blue-500"></i>
+                                <h3 class="mt-4 text-lg font-semibold">Daftar Working Order</h3>
+                                <p class="mt-1 text-sm text-slate-500">Lihat dan kelola semua tugas yang ada.</p>
+                            </a>
+                        </div>
+                    </div>
+            
+                    <!-- 2. List View (Table) -->
+                    <div id="wo-list-view" class="hidden">
+                         <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <div class="flex justify-between items-center mb-6">
+                                <div>
+                                    <h2 class="text-2xl font-bold">Daftar Working Order</h2>
+                                    <p class="text-slate-500 mt-1">Lacak dan kelola semua tugas perbaikan.</p>
+                                </div>
+                                <button id="back-to-wo-selection-from-list" class="text-sm font-medium text-blue-600 hover:underline flex items-center">
+                                    <i data-feather="arrow-left" class="w-4 h-4 mr-1"></i> Kembali ke Pilihan
+                                </button>
+                            </div>
+                            <!-- Filter Section -->
+                            <div class="mb-4 p-4 bg-slate-50 rounded-lg border">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                                    <div>
+                                        <label for="wo-filter-status" class="block text-sm font-medium text-slate-700 mb-1">Filter Status</label>
+                                        <select id="wo-filter-status" class="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Semua Status</option>
+                                            <option value="Open">Open</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed">Selesai</option>
+                                            <option value="Cancelled">Dibatalkan</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="wo-filter-assignee" class="block text-sm font-medium text-slate-700 mb-1">Filter Petugas</label>
+                                        <input type="text" id="wo-filter-assignee" placeholder="Nama petugas..." class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button id="wo-filter-btn" class="w-full bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center justify-center"><i data-feather="filter" class="w-4 h-4 mr-2"></i>Filter</button>
+                                        <button id="wo-clear-filter-btn" class="w-full bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg hover:bg-slate-300">Reset</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">No. WO</th>
+                                            <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Target</th>
+                                            <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Prioritas</th>
+                                            <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                                            <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ditugaskan</th>
+                                            <th class="p-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Target Selesai</th>
+                                            <th class="p-4 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="wo-table-body">
+                                        <!-- WO rows will be generated by script.js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- 3. Form View -->
+                    <div id="wo-form-view" class="hidden">
+                         <div class="bg-white p-6 rounded-lg shadow-sm">
+                            <div class="flex justify-between items-center mb-6">
+                                <div>
+                                    <h2 class="text-2xl font-bold">Form Working Order</h2>
+                                    <p class="text-slate-500 mt-1">Isi detail untuk tugas perbaikan baru.</p>
+                                </div>
+                                <button id="back-to-wo-selection-from-form" class="text-sm font-medium text-blue-600 hover:underline flex items-center">
+                                    <i data-feather="arrow-left" class="w-4 h-4 mr-1"></i> Kembali ke Pilihan
+                                </button>
+                            </div>
+                            <form id="wo-form">
+                                <input type="hidden" id="wo-form-id-input">
+                                <div class="space-y-8">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b">
+                                        <div>
+                                            <label for="wo-form-status-select" class="block text-sm font-medium text-slate-700 mb-1">Status Progress</label>
+                                            <select id="wo-form-status-select" required class="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500">
+                                                <option value="Open">Open</option>
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="Completed">Selesai</option>
+                                                <option value="Cancelled">Dibatalkan</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="wo-form-priority-select" class="block text-sm font-medium text-slate-700 mb-1">Prioritas</label>
+                                            <select id="wo-form-priority-select" required class="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500">
+                                                <option value="Rendah">Rendah</option>
+                                                <option value="Sedang" selected>Sedang</option>
+                                                <option value="Tinggi">Tinggi</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="wo-form-assignee-select" class="block text-sm font-medium text-slate-700 mb-1">Ditugaskan Kepada</label>
+                                            <select id="wo-form-assignee-select" required class="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500">
+                                                <option value="">Pilih Petugas</option>
+                                                <!-- Options populated by JS -->
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label for="wo-form-inspection-select" class="block text-sm font-medium text-slate-700 mb-1">Referensi Inspeksi (Status Kurang)</label>
+                                        <select id="wo-form-inspection-select" required class="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Pilih Laporan Inspeksi</option>
+                                            <!-- Options populated by JS -->
+                                        </select>
+                                    </div>
+
+                                    <div id="wo-form-inspection-notes-container" class="hidden">
+                                        <label class="block text-sm font-medium text-slate-700">Catatan Hasil Inspeksi</label>
+                                        <div id="wo-form-inspection-notes-display" class="mt-1 p-3 bg-slate-50 border rounded-md text-sm text-slate-600 min-h-[60px]"></div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label for="wo-form-start-date" class="block text-sm font-medium text-slate-700 mb-1">Tanggal Mulai Pengerjaan</label>
+                                            <input type="date" id="wo-form-start-date" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+                                        <div>
+                                            <label for="wo-form-target-date" class="block text-sm font-medium text-slate-700 mb-1">Target Selesai</label>
+                                            <input type="date" id="wo-form-target-date" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label for="wo-form-materials-input" class="block text-sm font-medium text-slate-700 mb-1">Permintaan Barang untuk Perbaikan (opsional)</label>
+                                        <textarea id="wo-form-materials-input" rows="3" placeholder="Contoh: 2x Bohlam LED 10W, 1x Sealant Keran" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500"></textarea>
+                                    </div>
+
+                                    <div id="wo-form-photos-container" class="hidden">
+                                        <label for="wo-form-photos-input" class="block text-sm font-medium text-slate-700 mb-1">Foto Hasil Pekerjaan (jika sudah selesai)</label>
+                                        <input type="file" id="wo-form-photos-input" multiple accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                                        <div id="wo-form-photos-preview" class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end mt-8">
+                                    <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Simpan Working Order</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profile-page" class="page-content hidden">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="bg-white p-6 sm:p-8 rounded-lg shadow-sm">
+                            <h2 class="text-2xl font-bold mb-1">Profil Pengguna</h2>
+                            <p class="text-slate-500 mb-6">Ubah informasi profil dan password Anda.</p>
+                            
+                            <form id="change-password-form" class="space-y-6">
+                                <div>
+                                    <label for="current-password" class="block text-sm font-medium text-slate-700 mb-1">Password Saat Ini</label>
+                                    <input type="password" id="current-password" required autocomplete="current-password" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="new-password" class="block text-sm font-medium text-slate-700 mb-1">Password Baru</label>
+                                    <input type="password" id="new-password" required autocomplete="new-password" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label for="confirm-password" class="block text-sm font-medium text-slate-700 mb-1">Konfirmasi Password Baru</label>
+                                    <input type="password" id="confirm-password" required autocomplete="new-password" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div class="pt-2">
+                                    <button type="submit" class="w-full bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        Ubah Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit User -->
+    <div id="user-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md">
+            <h3 id="user-modal-title" class="text-xl font-bold mb-6">Tambah Pengguna Baru</h3>
+            <form id="user-modal-form">
+                <input type="hidden" id="user-id-input">
+                <div class="space-y-4">
+                    <div>
+                        <label for="user-username-input" class="block text-sm font-medium text-slate-600 mb-1">Username</label>
+                        <input type="text" id="user-username-input" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="user-email-input" class="block text-sm font-medium text-slate-600 mb-1">Email</label>
+                        <input type="email" id="user-email-input" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="user-password-input" class="block text-sm font-medium text-slate-600 mb-1">Password</label>
+                        <input type="password" id="user-password-input" placeholder="Isi untuk mengubah password" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        <p id="password-help-text" class="text-xs text-slate-500 mt-1">Kosongkan jika tidak ingin mengubah password.</p>
+                    </div>
+                    <div>
+                        <label for="user-role-select" class="block text-sm font-medium text-slate-600 mb-1">Peran</label>
+                        <select id="user-role-select" required class="w-full px-3 py-2 border border-slate-300 rounded-md bg-white focus:ring-blue-500 focus:border-blue-500">
+                            <option value="inspector">Inspector</option>
+                            <option value="teknisi">Teknisi</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div id="hotel-assignment-container" class="space-y-2">
+                        <label class="block text-sm font-medium text-slate-600">Penugasan Hotel</label>
+                        <div id="hotel-assignment-checklist" class="max-h-40 overflow-y-auto space-y-2 rounded-md border p-3 bg-slate-50">
+                            <!-- Hotel checkboxes will be generated here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button type="button" id="cancel-user-modal-btn" class="px-6 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="bg-blue-500 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-600">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Room -->
+    <div id="room-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md">
+            <h3 id="room-modal-title" class="text-xl font-bold mb-6">Tambah Kamar Baru</h3>
+            <form id="room-modal-form">
+                <input type="hidden" id="room-id-input">
+                <div class="mb-4">
+                    <label for="room-number-input" class="block text-sm font-medium text-slate-600 mb-1">Nomor Kamar</label>
+                    <input type="text" id="room-number-input" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label for="room-type-input" class="block text-sm font-medium text-slate-600 mb-1">Tipe Kamar</label>
+                    <input type="text" id="room-type-input" placeholder="e.g., Standard, Deluxe, Suite" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-room-modal-btn" class="px-6 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="bg-blue-500 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-600">Simpan</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Hotel -->
+    <div id="hotel-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md">
+            <h3 id="hotel-modal-title" class="text-xl font-bold mb-6">Tambah Hotel Baru</h3>
+            <form id="hotel-modal-form">
+                <input type="hidden" id="hotel-id-input">
+                <div class="mb-4">
+                    <label for="hotel-name-input" class="block text-sm font-medium text-slate-600 mb-1">Nama Hotel</label>
+                    <input type="text" id="hotel-name-input" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label for="hotel-address-input" class="block text-sm font-medium text-slate-600 mb-1">Alamat</label>
+                    <textarea id="hotel-address-input" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-hotel-modal-btn" class="px-6 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="bg-blue-500 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-600">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Add Area -->
+    <div id="area-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md">
+            <h3 id="area-modal-title" class="text-xl font-bold mb-6">Tambah Area Baru</h3>
+            <form id="area-modal-form">
+                <input type="hidden" id="area-id-input">
+                <div class="mb-6">
+                    <label for="area-name-input" class="block text-sm font-medium text-slate-600 mb-1">Nama Area</label>
+                    <input type="text" id="area-name-input" placeholder="e.g., Gym, Spa, Ruang Rapat" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-area-modal-btn" class="px-6 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="bg-blue-500 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-600">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Room Checklist Item -->
+    <div id="room-checklist-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md">
+            <h3 id="room-checklist-modal-title" class="text-xl font-bold mb-6">Tambah Item Checklist</h3>
+            <form id="room-checklist-modal-form">
+                <input type="hidden" id="checklist-item-id-input">
+                <div class="mb-6">
+                    <label for="checklist-item-name-input" class="block text-sm font-medium text-slate-600 mb-1">Nama Item</label>
+                    <input type="text" id="checklist-item-name-input" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-checklist-modal-btn" class="px-6 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="bg-blue-500 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-600">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Area Checklist Item -->
+    <div id="area-checklist-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 sm:p-8 w-full max-w-md">
+            <h3 id="area-checklist-modal-title" class="text-xl font-bold mb-6">Tambah Item Checklist Area</h3>
+            <form id="area-checklist-modal-form">
+                <input type="hidden" id="area-checklist-item-id-input">
+                <div class="mb-6">
+                    <label for="area-checklist-item-name-input" class="block text-sm font-medium text-slate-600 mb-1">Nama Item</label>
+                    <input type="text" id="area-checklist-item-name-input" required class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-area-checklist-modal-btn" class="px-6 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="bg-blue-500 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-600">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Photo Viewer -->
+    <div id="photo-viewer-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 class="text-xl font-bold">Foto Inspeksi</h3>
+                <button id="close-photo-viewer-btn" class="p-2 rounded-full hover:bg-slate-200">
+                    <i data-feather="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="photo-viewer-content" class="p-4 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Photos will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Export Libraries (using unpkg CDN for better reliability) -->
+    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/jspdf-autotable@latest/dist/jspdf.plugin.autotable.js"></script>
+
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+      feather.replace();
+    </script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f1f5f9; /* slate-100 */
+}
+
+.sidebar-link.active {
+    background-color: #3b82f6; /* blue-500 */
+    color: rgb(245, 248, 248);
+}
+
+.sidebar-link.active i {
+    color: rgb(249, 253, 253);
+}
+
+.tab-active {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background-color: #f2f7f1;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { 
+    width: 8px; 
+}
+
+::-webkit-scrollbar-track { 
+    background: #fcfeff; 
+}
+
+::-webkit-scrollbar-thumb { 
+    background: #cbd5e1; /* slate-300 */
+    border-radius: 10px; 
+}
+
+::-webkit-scrollbar-thumb:hover { 
+    background: #94a3b8; /* slate-400 */
+}

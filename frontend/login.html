@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Aplikasi Inspeksi Hotel</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="antialiased text-slate-800 flex flex-col min-h-screen bg-cover bg-center" style="background-image: url('https://cf.bstatic.com/xdata/images/hotel/max1024x768/48257454.jpg?k=aca198931fc43d408944a4b4be539202dfd762473f970ea6168e7613fabc2686&o=&hp=1');">
+
+    <main class="flex-grow flex items-center justify-center">
+        <div class="w-full max-w-md p-8 space-y-8 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">
+            <div class="text-center">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="bg-blue-500 p-3 rounded-lg shadow-md">
+                        <i data-feather="check-square" class="text-white w-8 h-8"></i>
+                    </div>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-900">Hotel Inspection</h1>
+                <p class="mt-2 text-slate-600">Please log in to continue</p>
+            </div>
+            <form id="login-form" class="mt-8 space-y-6">
+                <div class="relative">
+                    <label for="email" class="sr-only">Email</label>
+                    <input id="email" name="email" type="email" autocomplete="email" required
+                           class="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Email Address">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i data-feather="mail" class="text-slate-400"></i>
+                    </div>
+                </div>
+                <div class="relative">
+                    <label for="password" class="sr-only">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required
+                           class="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Password">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i data-feather="lock" class="text-slate-400"></i>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember-me" name="remember-me" type="checkbox"
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-slate-900">
+                            Remember me
+                        </label>
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="forgot-password.html" class="font-medium text-blue-600 hover:text-blue-500">
+                            Forgot Password?
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit"
+                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Login
+                    </button>
+                </div>
+                <div id="login-error" class="text-red-500 text-sm text-center hidden"></div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="text-center py-4 text-sm text-white" style="text-shadow: 0 1px 2px rgba(0,0,0,0.6);">
+        <p>© 2025 KAGUM Hotel Inspection App. Semua Hak Cipta Dilindungi.</p>
+    </footer>
+
+    <script>
+        feather.replace();
+    </script>
+    <script src="config.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>
