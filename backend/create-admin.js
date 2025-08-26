@@ -8,14 +8,25 @@ require('dotenv').config();
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
-// Konfigurasi koneksi database dari file .env
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Di produksi (Render), gunakan DATABASE_URL. Di development, gunakan variabel .env
+const connectionConfig = isProduction 
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+            rejectUnauthorized: false // Diperlukan untuk koneksi ke database Render
+        }
+      }
+    : {
+        user: process.env.DB_USER,
+        host: process.env.DB_HOST,
+        database: process.env.DB_DATABASE,
+        password: process.env.DB_PASSWORD,
+        port: process.env.DB_PORT,
+      };
+
+const pool = new Pool(connectionConfig);
 
 const createAdmin = async () => {
     // Ambil email dan password dari argumen baris perintah
