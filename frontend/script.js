@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- CONFIGURATION ---
-    const API_BASE_URL = '${API_BASE_URL}/api';
+    const API_BASE_URL = 'https://kagum-hotel-inspection-app.onrender.com/api';
 
     // --- HELPER FUNCTIONS ---    
     const fetchWithAuth = async (url, options = {}) => {
@@ -2719,4 +2719,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initializeApp();
 });
+
 
